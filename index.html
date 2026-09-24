@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Генератор промту — HTML-інтерактив</title>
+
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    :root {
+        --blue: #2563eb;
+        --blue-dark: #1d4ed8;
+        --blue-light: #eff6ff;
+        --bg: #f5f7fb;
+        --card: #ffffff;
+        --text: #172033;
+        --muted: #64748b;
+        --border: #dbe2ea;
+        --success: #16a34a;
+    }
+
+    body {
+        margin: 0;
+        font-family: Inter, Arial, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.5;
+    }
+
+    .container {
+        width: min(100% - 32px, 1050px);
+        margin: 0 auto;
+        padding: 36px 0 60px;
+    }
+
+    header {
+        margin-bottom: 28px;
+    }
+
+    .logo {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        background: var(--blue-light);
+        color: var(--blue);
+        padding: 8px 14px;
+        border-radius: 999px;
+        font-size: 14px;
+        font-weight: 700;
+        margin-bottom: 14px;
+    }
+
+    h1 {
+        margin: 0 0 8px;
+        font-size: clamp(28px, 5vw, 42px);
+        line-height: 1.1;
+    }
+
+    .subtitle {
+        margin: 0;
+        color: var(--muted);
+        font-size: 17px;
+    }
+
+    .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 26px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 18px rgba(15, 23, 42, 0.04);
+    }
+
+    .section-title {
+        margin: 0 0 18px;
+        font-size: 21px;
+    }
+
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+    }
+
+    .field {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+    }
+
+    .field.full {
+        grid-column: 1 / -1;
+    }
+
+    label {
+        font-size: 14px;
+        font-weight: 700;
+    }
+
+    .hint {
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: -2px;
+    }
+
+    input,
+    select,
+    textarea {
+        width: 100%;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 12px 13px;
+        font: inherit;
+        color: var(--text);
+        background: #fff;
+        outline: none;
+        transition: border-color .2s, box-shadow .2s;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+        border-color: var(--blue);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+
+    textarea {
+        resize: vertical;
+        min-height: 90px;
+    }
+
+    .custom-input {
+        margin-top: 8px;
+        display: none;
+    }
+
+    .custom-input.visible {
+        display: block;
+    }
+
+    .checkbox-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .check-option {
+        display: flex;
+        align-items: flex-start;
+        gap: 9px;
+        border: 1px solid var(--border);
+        padding: 11px 12px;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: background .15s, border-color .15s;
+        font-weight: 500;
+    }
+
+    .check-option:hover {
+        background: var(--blue-light);
+        border-color: #bfdbfe;
+    }
+
+    .check-option input {
+        width: auto;
+        margin-top: 3px;
+        accent-color: var(--blue);
+    }
+
+    .actions {
+        display: flex;
+        justify-content: center;
+        margin-top: 26px;
+    }
+
+    button {
+        border: 0;
+        border-radius: 11px;
+        padding: 13px 22px;
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+        transition: transform .15s, background .15s, box-shadow .15s;
+    }
+
+    .generate-btn {
+        background: var(--blue);
+        color: white;
+        min-width: 230px;
+        box-shadow: 0 5px 14px rgba(37, 99, 235, 0.25);
+    }
+
+    .generate-btn:hover {
+        background: var(--blue-dark);
+        transform: translateY(-1px);
+    }
+
+    .result {
+        display: none;
+    }
+
+    .result.visible {
+        display: block;
+    }
+
+    .result-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        margin-bottom: 15px;
+    }
+
+    .result-header h2 {
+        margin: 0;
+        font-size: 21px;
+    }
+
+    .copy-btn {
+        background: #e8f5ec;
+        color: var(--success);
+        padding: 10px 16px;
+    }
+
+    .copy-btn:hover {
+        background: #dcfce7;
+    }
+
+    .copy-btn.copied {
+        background: var(--success);
+        color: white;
+    }
+
+    #promptOutput {
+        width: 100%;
+        min-height: 600px;
+        font-family: Consolas, Monaco, monospace;
+        font-size: 13px;
+        line-height: 1.55;
+        background: #f8fafc;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 18px;
+        white-space: pre-wrap;
+    }
+
+    .bottom-copy {
+        display: flex;
+        justify-content: center;
+        margin-top: 16px;
+    }
+
+    .bottom-copy button {
+        width: 100%;
+        max-width: 300px;
+        background: var(--blue);
+        color: white;
+    }
+
+    .bottom-copy button:hover {
+        background: var(--blue-dark);
+    }
+
+    .note {
+        background: var(--blue-light);
+        border-left: 4px solid var(--blue);
+        padding: 12px 14px;
+        border-radius: 8px;
+        color: #334155;
+        font-size: 14px;
+        margin-top: 18px;
+    }
+
+    @media (max-width: 700px) {
+        .container {
+            width: min(100% - 20px, 1050px);
+            padding-top: 22px;
+        }
+
+        .card {
+            padding: 18px;
+            border-radius: 14px;
+        }
+
+        .grid,
+        .checkbox-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .field.full {
+            grid-column: auto;
+        }
+
+        .result-header {
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+        .copy-btn {
+            width: 100%;
+        }
+    }
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <header>
+        <div class="logo">🎮 HTML INTERACTIVE GENERATOR</div>
+        <h1>Генератор промту для HTML-інтерактиву</h1>
+        <p class="subtitle">
+            Заповніть форму — отримайте готовий промт для генерації навчального інтерактиву.
+        </p>
+    </header>
+
+    <form id="generatorForm">
+
+        <section class="card">
+            <h2 class="section-title">📚 Основна інформація</h2>
+
+            <div class="grid">
+
+                <div class="field">
+                    <label for="subject">Предмет *</label>
+                    <select id="subject" required>
+                        <option value="">Оберіть предмет</option>
+                        <option>Англійська мова</option>
+                        <option>Українська мова</option>
+                        <option>Українська література</option>
+                        <option>Математика</option>
+                        <option>Інформатика</option>
+                        <option>Історія України</option>
+                        <option>Всесвітня історія</option>
+                        <option>Географія</option>
+                        <option>Біологія</option>
+                        <option>Фізика</option>
+                        <option>Хімія</option>
+                        <option>Громадянська освіта</option>
+                        <option>Мистецтво</option>
+                        <option>Інше</option>
+                    </select>
+
+                    <input
+                        id="subjectCustom"
+                        class="custom-input"
+                        type="text"
+                        placeholder="Введіть свій предмет"
+                    >
+                </div>
+
+                <div class="field">
+                    <label for="grade">Клас *</label>
+                    <select id="grade" required>
+                        <option value="">Оберіть клас</option>
+                        <option>1 клас</option>
+                        <option>2 клас</option>
+                        <option>3 клас</option>
+                        <option>4 клас</option>
+                        <option>5 клас</option>
+                        <option>6 клас</option>
+                        <option>7 клас</option>
+                        <option>8 клас</option>
+                        <option>9 клас</option>
+                        <option>10 клас</option>
+                        <option>11 клас</option>
+                    </select>
+                </div>
+
+                <div class="field full">
+                    <label for="topic">Тема уроку *</label>
+                    <input
+                        id="topic"
+                        type="text"
+                        placeholder="Наприклад: Present Simple"
+                        required
+                    >
+                </div>
+
+                <div class="field full">
+                    <label for="subtopic">Підтема / конкретний навчальний матеріал</label>
+                    <textarea
+                        id="subtopic"
+                        placeholder="Наприклад: стверджувальні, заперечні та питальні речення..."
+                    ></textarea>
+                </div>
+
+            </div>
+        </section>
+
+        <section class="card">
+            <h2 class="section-title">🎯 Параметри навчання</h2>
+
+            <div class="grid">
+
+                <div class="field">
+                    <label for="goal">Мета інтерактиву</label>
+                    <select id="goal">
+                        <option value="закріплення нового матеріалу">Закріплення нового матеріалу</option>
+                        <option value="повторення вивченого">Повторення вивченого</option>
+                        <option value="перевірка знань">Перевірка знань</option>
+                        <option value="пояснення нового матеріалу">Пояснення нового матеріалу</option>
+                        <option value="тренування навички">Тренування навички</option>
+                        <option value="підготовка до контрольної роботи">Підготовка до контрольної роботи</option>
+                        <option value="мотивація учнів">Мотивація учнів</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label for="level">Рівень учнів</label>
+                    <select id="level">
+                        <option value="відповідно до віку та класу">Відповідно до віку та класу</option>
+                        <option value="початковий">Початковий</option>
+                        <option value="середній">Середній</option>
+                        <option value="достатній">Достатній</option>
+                        <option value="високий">Високий</option>
+                        <option value="A1">A1</option>
+                        <option value="A2">A2</option>
+                        <option value="B1">B1</option>
+                        <option value="B2">B2</option>
+                        <option value="C1">C1</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label for="time">Орієнтовний час</label>
+                    <select id="time">
+                        <option>5–10 хвилин</option>
+                        <option selected>10–15 хвилин</option>
+                        <option>15–20 хвилин</option>
+                        <option>20–30 хвилин</option>
+                        <option>30+ хвилин</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label for="format">Формат роботи</label>
+                    <select id="format">
+                        <option>індивідуально</option>
+                        <option>у парах</option>
+                        <option>у групах</option>
+                        <option>фронтально з усім класом</option>
+                        <option>індивідуально або фронтально</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label for="language">Мова інтерфейсу</label>
+                    <select id="language">
+                        <option>українська</option>
+                        <option>англійська</option>
+                        <option>українська та англійська</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label for="students">Кількість учнів</label>
+                    <input
+                        id="students"
+                        type="number"
+                        min="1"
+                        placeholder="Наприклад: 25"
+                    >
+                </div>
+
+            </div>
+        </section>
+
+        <section class="card">
+            <h2 class="section-title">🎮 Ігрова механіка</h2>
+
+            <div class="field">
+                <label for="mechanic">Тип інтерактиву</label>
+                <select id="mechanic">
+                    <option value="Самостійно обери найкращу механіку відповідно до теми">🤖 Нехай ШІ обере сам</option>
+                    <option value="квест">🗺️ Квест</option>
+                    <option value="детектив">🔎 Детектив</option>
+                    <option value="місія">🎯 Місія</option>
+                    <option value="подорож">🌍 Подорож</option>
+                    <option value="escape room">🔐 Escape room</option>
+                    <option value="змагання">🏆 Змагання</option>
+                    <option value="пошук помилок">🕵️ Пошук помилок</option>
+                    <option value="сортування">🗂️ Сортування</option>
+                    <option value="встановлення відповідностей">🔗 Встановлення відповідностей</option>
+                    <option value="пазл">🧩 Пазл</option>
+                    <option value="вікторина з ігровими елементами">❓ Вікторина</option>
+                    <option value="проходження рівнів">🎮 Проходження рівнів</option>
+                    <option value="симуляція">⚙️ Симуляція</option>
+                </select>
+            </div>
+
+            <br>
+
+            <label>🏆 Ігрові елементи</label>
+
+            <div class="checkbox-grid" style="margin-top:10px">
+
+                <label class="check-option">
+                    <input type="checkbox" value="бали" checked>
+                    <span>⭐ Бали</span>
+                </label>
+
+                <label class="check-option">
+                    <input type="checkbox" value="прогрес проходження" checked>
+                    <span>📊 Прогрес</span>
+                </label>
+
+                <label class="check-option">
+                    <input type="checkbox" value="рівні або етапи" checked>
+                    <span>🎯 Рівні</span>
+                </label>
+
+                <label class="check-option">
+                    <input type="checkbox" value="таймер">
+                    <span>⏱️ Таймер</span>
+                </label>
+
+                <label class="check-option">
+                    <input type="checkbox" value="життя або спроби">
+                    <span>❤️ Життя / спроби</span>
+                </label>
+
+                <label class="check-option">
+                    <input type="checkbox" value="фінальна нагорода" checked>
+                    <span>🏆 Фінальна нагорода</span>
+                </label>
+
+                <label class="check-option">
+                    <input type="checkbox" value="анімації">
+                    <span>✨ Анімації</span>
+                </label>
+
+                <label class="check-option">
+                    <input type="checkbox" value="звукові ефекти">
+                    <span>🔊 Звукові ефекти</span>
+                </label>
+
+            </div>
+        </section>
+
+        <section class="card">
+            <h2 class="section-title">🎨 Дизайн і додаткові умови</h2>
+
+            <div class="grid">
+
+                <div class="field">
+                    <label for="style">Стиль дизайну</label>
+                    <select id="style">
+                        <option>сучасний освітній</option>
+                        <option>мінімалістичний</option>
+                        <option>яскравий дитячий</option>
+                        <option>ігровий</option>
+                        <option>технологічний</option>
+                        <option>стриманий для старших учнів</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label for="difficulty">Складність</label>
+                    <select id="difficulty">
+                        <option>поступове ускладнення</option>
+                        <option>легка</option>
+                        <option>середня</option>
+                        <option>висока</option>
+                        <option>змішана</option>
+                    </select>
+                </div>
+
+                <div class="field full">
+                    <label for="material">Додатковий навчальний матеріал</label>
+                    <textarea
+                        id="material"
+                        placeholder="Вставте сюди слова, правила, формули, текст, визначення тощо. Якщо матеріалу немає — залиште поле порожнім."
+                    ></textarea>
+                </div>
+
+                <div class="field full">
+                    <label for="wishes">Особливі побажання</label>
+                    <textarea
+                        id="wishes"
+                        placeholder="Наприклад: без тестових запитань, більше практичних завдань, використовувати персонажа, додати гумор, завдання мають бути короткими..."
+                    ></textarea>
+                </div>
+
+            </div>
+        </section>
+
+        <div class="actions">
+            <button type="submit" class="generate-btn">
+                🚀 Згенерувати промт
+            </button>
+        </div>
+
+    </form>
+
+    <section class="card result" id="result">
+
+        <div class="result-header">
+            <h2>📋 Готовий промт</h2>
+            <button type="button" class="copy-btn" id="copyTop">
+                📋 Копіювати
+            </button>
+        </div>
+
+        <textarea id="promptOutput" readonly></textarea>
+
+        <div class="bottom-copy">
+            <button type="button" id="copyBottom">
+                📋 Копіювати промт
+            </button>
+        </div>
+
+        <div class="note">
+            💡 Скопіюйте промт і вставте його в ChatGPT, Claude, Gemini або іншу нейромережу, яка вміє генерувати HTML.
+        </div>
+
+    </section>
+
+</div>
+
+<script>
+
+const subject = document.getElementById("subject");
+const subjectCustom = document.getElementById("subjectCustom");
+
+subject.addEventListener("change", () => {
+    if (subject.value === "Інше") {
+        subjectCustom.classList.add("visible");
+        subjectCustom.required = true;
+        subjectCustom.focus();
+    } else {
+        subjectCustom.classList.remove("visible");
+        subjectCustom.required = false;
+        subjectCustom.value = "";
+    }
+});
+
+
+function getValue(id) {
+    return document.getElementById(id).value.trim();
+}
+
+
+function getSelectedGameElements() {
+    const checked = document.querySelectorAll(
+        '.check-option input[type="checkbox"]:checked'
+    );
+
+    if (checked.length === 0) {
+        return "за можливості використай доречні ігрові елементи";
+    }
+
+    return Array.from(checked)
+        .map(item => item.value)
+        .join(", ");
+}
+
+
+function generatePrompt() {
+
+    let selectedSubject = getValue("subject");
+
+    if (selectedSubject === "Інше") {
+        selectedSubject = getValue("subjectCustom");
+    }
+
+    const grade = getValue("grade");
+    const topic = getValue("topic");
+    const subtopic = getValue("subtopic") || "не вказано";
+    const goal = getValue("goal");
+    const level = getValue("level");
+    const time = getValue("time");
+    const students = getValue("students") || "не вказано";
+    const format = getValue("format");
+    const language = getValue("language");
+    const mechanic = getValue("mechanic");
+    const style = getValue("style");
+    const difficulty = getValue("difficulty");
+    const material = getValue("material") || "не надано";
+    const wishes = getValue("wishes") || "немає";
+
+    const gameElements = getSelectedGameElements();
+
+    const prompt = `# 🎮 Створення HTML-інтерактиву для уроку
+
+Ти — досвідчений учитель, методист і розробник навчальних вебінтерактивів.
+
+На основі наданих параметрів створи готовий інтерактивний навчальний вебзастосунок в одному HTML-файлі.
+
+Інтерактив має бути не просто набором тестових запитань, а цікавою ігровою активністю, яка допомагає учням засвоїти або закріпити навчальний матеріал.
+
+## 📚 Параметри уроку
+
+**Предмет:** ${selectedSubject}
+
+**Клас:** ${grade}
+
+**Тема:** ${topic}
+
+**Підтема / конкретний навчальний матеріал:** ${subtopic}
+
+**Мета:** ${goal}
+
+**Рівень учнів:** ${level}
+
+**Орієнтовний час проходження:** ${time}
+
+**Кількість учнів:** ${students}
+
+**Формат роботи:** ${format}
+
+**Мова інтерфейсу:** ${language}
+
+**Ігрова механіка:** ${mechanic}
+
+**Стиль дизайну:** ${style}
+
+**Складність:** ${difficulty}
+
+**Ігрові елементи:** ${gameElements}
+
+**Додатковий навчальний матеріал:**
+${material}
+
+**Особливі побажання:**
+${wishes}
+
+
+# 🎯 Завдання
+
+Створи повністю готовий HTML-інтерактив, який можна зберегти як файл interactive.html і відкрити у звичайному браузері без встановлення додаткового програмного забезпечення.
+
+Перед створенням інтерактиву проаналізуй:
+
+- вік учнів;
+- рівень їхньої підготовки;
+- навчальну тему;
+- мету активності;
+- оптимальну складність;
+- типи завдань, які найкраще відповідають темі.
+
+Самостійно продумай цікаву ігрову механіку та сюжет, якщо це доречно.
+
+Не обмежуйся звичайним тестом, якщо тема дозволяє створити цікавіший формат.
+
+## 🎮 Ігрова система
+
+Інтерактив має використовувати такі елементи:
+
+${gameElements}
+
+Кількість завдань визначай відповідно до теми та зазначеного часу.
+
+Завдання мають поступово ускладнюватися.
+
+Не використовуй однаковий тип завдання багато разів поспіль.
+
+## 💻 Технічні вимоги
+
+Створи один самодостатній HTML-файл.
+
+Використовуй HTML, CSS і JavaScript.
+
+Не використовуй серверну частину.
+
+Не вимагай реєстрації або авторизації.
+
+Не використовуй базу даних.
+
+Не використовуй зовнішні API, якщо вони не потрібні для роботи інтерактиву.
+
+Увесь необхідний контент має бути безпосередньо всередині HTML-файлу.
+
+Інтерактив має працювати після відкриття файлу у браузері.
+
+Усі кнопки та елементи інтерфейсу повинні реально працювати.
+
+Не залишай демонстраційних кнопок, заглушок або функцій, які нічого не роблять.
+
+## 📱 Дизайн
+
+Створи ${style} інтерфейс, орієнтований на учнів.
+
+Інтерактив має коректно працювати на:
+
+- комп'ютері;
+- планшеті;
+- смартфоні.
+
+Використовуй адаптивну верстку.
+
+Інтерфейс не повинен бути перевантажений текстом.
+
+Використовуй:
+
+- великі зрозумілі кнопки;
+- чітку візуальну ієрархію;
+- достатній контраст;
+- зрозумілі повідомлення;
+- доречні анімації.
+
+## 🧠 Робота з відповідями
+
+Після відповіді учня:
+
+- одразу повідомляй, чи правильна відповідь;
+- показуй правильну відповідь, якщо учень помилився;
+- за можливості коротко пояснюй помилку;
+- оновлюй кількість балів;
+- оновлюй прогрес.
+
+Не використовуй неоднозначні завдання.
+
+Усі правильні відповіді повинні бути перевірені перед створенням коду.
+
+## 🏆 Фінальний екран
+
+Після завершення інтерактиву покажи:
+
+- кількість правильних відповідей;
+- загальну кількість завдань;
+- відсоток виконання;
+- кількість набраних балів;
+- короткий підсумок;
+- кнопку «Спробувати ще раз».
+
+Не використовуй образливі або демотивувальні формулювання.
+
+## 👨‍🏫 Зручність для вчителя
+
+У коді передбач можливість учителю легко змінити:
+
+- назву;
+- тему;
+- завдання;
+- правильні відповіді;
+- кількість балів;
+- кольори;
+- текст повідомлень.
+
+Основні дані бажано зберігати в окремому JavaScript-масиві або об'єкті на початку скрипту.
+
+# 🔍 ОБОВ'ЯЗКОВА ПЕРЕВІРКА ПЕРЕД ВИВЕДЕННЯМ
+
+Перед виведенням готового HTML-коду самостійно перевір його логіку та працездатність.
+
+Перевір обов'язково:
+
+- правильність HTML-структури;
+- CSS і адаптивність інтерфейсу;
+- синтаксис JavaScript;
+- роботу всіх кнопок;
+- переходи між усіма етапами;
+- початок і завершення гри;
+- перезапуск інтерактиву;
+- підрахунок балів;
+- підрахунок правильних і неправильних відповідей;
+- відображення прогресу;
+- перевірку відповідей;
+- відображення правильних відповідей;
+- роботу таймера, якщо він використовується;
+- роботу всіх рівнів;
+- фінальний екран;
+- відсутність невизначених змінних, функцій або елементів;
+- відсутність помилок, через які інтерактив може перестати працювати.
+
+Перевір, що всі елементи, до яких звертається JavaScript, реально існують у HTML.
+
+Перевір, що після повторного запуску гри попередній стан, бали, відповіді, таймери та прогрес коректно скидаються.
+
+Перевір інтерактив на вузькому екрані смартфона та на широкому екрані комп'ютера.
+
+**Не виводь код із відомими помилками.**
+
+Якщо під час перевірки виявлено помилку, виправ її до виведення результату.
+
+Не повідомляй, що код «має працювати». Переконайся, що логіка реалізована коректно.
+
+# ⚠️ Важливі правила
+
+Не вигадуй навчальні факти.
+
+Не додавай інформацію, якої немає в наданому матеріалі, якщо вона може бути фактично помилковою.
+
+Не роби інтерактив надмірно складним.
+
+Не перетворюй його на звичайний тест, якщо можна реалізувати цікаву ігрову механіку.
+
+Не використовуй Lorem ipsum, тестові запитання або умовний контент.
+
+Усі тексти для учнів мають бути готовими до використання.
+
+# 📦 Формат відповіді
+
+Спочатку коротко напиши:
+
+**Назва інтерактиву:**  
+**Ігрова механіка:**  
+**Мета:**  
+**Орієнтовний час:**  
+
+Після цього надай повний готовий код HTML.
+
+Код має бути завершеним і готовим до збереження у файл:
+
+interactive.html
+
+Не скорочуй код і не замінюй частини словами «додайте тут код».
+
+Після коду коротко вкажи:
+
+**Як використовувати:**
+
+1. Зберегти код як interactive.html.
+2. Відкрити файл у браузері.
+3. Використовувати на уроці.
+
+Якщо тема або надані дані не дозволяють створити якісний інтерактив, спочатку вкажи, якої інформації бракує, і не вигадуй її.`;
+
+    document.getElementById("promptOutput").value = prompt;
+
+    const result = document.getElementById("result");
+    result.classList.add("visible");
+
+    result.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+    });
+}
+
+
+document
+    .getElementById("generatorForm")
+    .addEventListener("submit", function(event) {
+        event.preventDefault();
+        generatePrompt();
+    });
+
+
+async function copyPrompt(button) {
+
+    const output = document.getElementById("promptOutput");
+    const originalText = button.textContent;
+
+    try {
+        await navigator.clipboard.writeText(output.value);
+    } catch (error) {
+        output.select();
+        output.setSelectionRange(0, output.value.length);
+        document.execCommand("copy");
+    }
+
+    button.textContent = "✅ Скопійовано";
+    button.classList.add("copied");
+
+    setTimeout(() => {
+        button.textContent = originalText;
+        button.classList.remove("copied");
+    }, 1800);
+}
+
+
+document
+    .getElementById("copyTop")
+    .addEventListener("click", function() {
+        copyPrompt(this);
+    });
+
+
+document
+    .getElementById("copyBottom")
+    .addEventListener("click", function() {
+        copyPrompt(this);
+    });
+
+</script>
+
+</body>
+</html>
