@@ -4,688 +4,366 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Генератор промту — HTML-інтерактив</title>
-
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-    * {
-        box-sizing: border-box;
-    }
-
-    :root {
-        --blue: #2563eb;
-        --blue-dark: #1d4ed8;
-        --blue-light: #eff6ff;
-        --bg: #f5f7fb;
-        --card: #ffffff;
-        --text: #172033;
-        --muted: #64748b;
-        --border: #dbe2ea;
-        --success: #16a34a;
-    }
-
-    body {
-        margin: 0;
-        font-family: Inter, Arial, sans-serif;
-        background: var(--bg);
-        color: var(--text);
-        line-height: 1.5;
-    }
-
-    .container {
-        width: min(100% - 32px, 1050px);
-        margin: 0 auto;
-        padding: 36px 0 60px;
-    }
-
-    header {
-        margin-bottom: 28px;
-    }
-
-    .logo {
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
-        background: var(--blue-light);
-        color: var(--blue);
-        padding: 8px 14px;
-        border-radius: 999px;
-        font-size: 14px;
-        font-weight: 700;
-        margin-bottom: 14px;
-    }
-
-    h1 {
-        margin: 0 0 8px;
-        font-size: clamp(28px, 5vw, 42px);
-        line-height: 1.1;
-    }
-
-    .subtitle {
-        margin: 0;
-        color: var(--muted);
-        font-size: 17px;
-    }
-
-    .card {
-        background: var(--card);
-        border: 1px solid var(--border);
-        border-radius: 18px;
-        padding: 26px;
-        margin-bottom: 20px;
-        box-shadow: 0 4px 18px rgba(15, 23, 42, 0.04);
-    }
-
-    .section-title {
-        margin: 0 0 18px;
-        font-size: 21px;
-    }
-
-    .grid {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 18px;
-    }
-
-    .field {
-        display: flex;
-        flex-direction: column;
-        gap: 7px;
-    }
-
-    .field.full {
-        grid-column: 1 / -1;
-    }
-
-    label {
-        font-size: 14px;
-        font-weight: 700;
-    }
-
-    .hint {
-        font-size: 12px;
-        color: var(--muted);
-        margin-top: -2px;
-    }
-
-    input,
-    select,
-    textarea {
-        width: 100%;
-        border: 1px solid var(--border);
-        border-radius: 10px;
-        padding: 12px 13px;
-        font: inherit;
-        color: var(--text);
-        background: #fff;
-        outline: none;
-        transition: border-color .2s, box-shadow .2s;
-    }
-
-    input:focus,
-    select:focus,
-    textarea:focus {
-        border-color: var(--blue);
-        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
-    }
-
-    textarea {
-        resize: vertical;
-        min-height: 90px;
-    }
-
-    .custom-input {
-        margin-top: 8px;
-        display: none;
-    }
-
-    .custom-input.visible {
-        display: block;
-    }
-
-    .checkbox-grid {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 10px;
-    }
-
-    .check-option {
-        display: flex;
-        align-items: flex-start;
-        gap: 9px;
-        border: 1px solid var(--border);
-        padding: 11px 12px;
-        border-radius: 10px;
-        cursor: pointer;
-        transition: background .15s, border-color .15s;
-        font-weight: 500;
-    }
-
-    .check-option:hover {
-        background: var(--blue-light);
-        border-color: #bfdbfe;
-    }
-
-    .check-option input {
-        width: auto;
-        margin-top: 3px;
-        accent-color: var(--blue);
-    }
-
-    .actions {
-        display: flex;
-        justify-content: center;
-        margin-top: 26px;
-    }
-
-    button {
-        border: 0;
-        border-radius: 11px;
-        padding: 13px 22px;
-        font: inherit;
-        font-weight: 700;
-        cursor: pointer;
-        transition: transform .15s, background .15s, box-shadow .15s;
-    }
-
-    .generate-btn {
-        background: var(--blue);
-        color: white;
-        min-width: 230px;
-        box-shadow: 0 5px 14px rgba(37, 99, 235, 0.25);
-    }
-
-    .generate-btn:hover {
-        background: var(--blue-dark);
-        transform: translateY(-1px);
-    }
-
-    .result {
-        display: none;
-    }
-
-    .result.visible {
-        display: block;
-    }
-
-    .result-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 15px;
-        margin-bottom: 15px;
-    }
-
-    .result-header h2 {
-        margin: 0;
-        font-size: 21px;
-    }
-
-    .copy-btn {
-        background: #e8f5ec;
-        color: var(--success);
-        padding: 10px 16px;
-    }
-
-    .copy-btn:hover {
-        background: #dcfce7;
-    }
-
-    .copy-btn.copied {
-        background: var(--success);
-        color: white;
-    }
-
-    #promptOutput {
-        width: 100%;
-        min-height: 600px;
-        font-family: Consolas, Monaco, monospace;
-        font-size: 13px;
-        line-height: 1.55;
-        background: #f8fafc;
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        padding: 18px;
-        white-space: pre-wrap;
-    }
-
-    .bottom-copy {
-        display: flex;
-        justify-content: center;
-        margin-top: 16px;
-    }
-
-    .bottom-copy button {
-        width: 100%;
-        max-width: 300px;
-        background: var(--blue);
-        color: white;
-    }
-
-    .bottom-copy button:hover {
-        background: var(--blue-dark);
-    }
-
-    .note {
-        background: var(--blue-light);
-        border-left: 4px solid var(--blue);
-        padding: 12px 14px;
-        border-radius: 8px;
-        color: #334155;
-        font-size: 14px;
-        margin-top: 18px;
-    }
-
-    @media (max-width: 700px) {
-        .container {
-            width: min(100% - 20px, 1050px);
-            padding-top: 22px;
-        }
-
-        .card {
-            padding: 18px;
-            border-radius: 14px;
-        }
-
-        .grid,
-        .checkbox-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .field.full {
-            grid-column: auto;
-        }
-
-        .result-header {
-            align-items: stretch;
-            flex-direction: column;
-        }
-
-        .copy-btn {
-            width: 100%;
-        }
-    }
+*{box-sizing:border-box}
+:root{--bg:#fff;--sheet:#fff;--ink:#0f2a24;--mute:#53675f;--line:#d6e3de;--brand:#067a63;--tint:#e2f4ee;--hi:#ff7a45;--ok:#0f9d75;--err:#d92d4f;--panel:#e4f4ee;--panel-ink:#0f2a24;
+--font:Onest,"Segoe UI",system-ui,sans-serif;--mono:"JetBrains Mono",Consolas,Monaco,monospace}
+html{scroll-padding-top:16px}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.5 var(--font);-webkit-font-smoothing:antialiased}
+.wrap{width:min(100% - 24px,1260px);margin:0 auto;padding:28px 0 96px}
+header{display:flex;align-items:center;gap:18px;margin-bottom:24px}
+.mark{flex:none;width:54px;height:54px;border-radius:16px;background:var(--brand);position:relative;display:grid;place-items:center;color:#fff;font-size:26px;box-shadow:6px 6px 0 var(--hi)}
+h1{margin:0;font-weight:800;font-size:clamp(24px,3.6vw,40px);line-height:1.08;letter-spacing:-.02em;max-width:22ch}
+.sub{margin:6px 0 0;color:var(--mute);max-width:60ch}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 430px;gap:24px;align-items:start}
+.sheet{background:var(--sheet);border-radius:28px;padding:8px 34px;border:1px solid var(--line)}
+.step{display:grid;grid-template-columns:150px minmax(0,1fr);gap:28px;padding:30px 0}
+.step+.step{border-top:1px dashed var(--line)}
+.step h2{margin:0;font-size:19px;line-height:1.2;position:sticky;top:20px;align-self:start}
+.step h2 b{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--ink);color:var(--sheet);font-size:15px;margin-bottom:10px}
+.step h2 small{display:block;font-weight:400;font-size:13px;color:var(--mute);margin-top:4px}
+.fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px}
+.field{display:flex;flex-direction:column;gap:8px;min-width:0}
+.field.full{grid-column:1/-1}
+label,.lbl{font-size:14px;font-weight:600}
+.field.err>label,.field.err>.lbl{color:var(--err)}
+.field.err .box,.field.err input[type=text],.field.err .pick{outline:2px solid var(--err);outline-offset:4px;border-radius:12px}
+input[type=text],input[type=number],textarea{width:100%;font:inherit;color:var(--ink);background:transparent;border:0;border-bottom:2px solid var(--line);border-radius:0;padding:10px 2px;transition:border-color .2s}
+textarea{resize:vertical;min-height:84px;border:2px solid var(--line);border-radius:14px;padding:12px 14px;background:color-mix(in srgb,var(--tint) 30%,#fff)}
+input::placeholder,textarea::placeholder{color:var(--mute);opacity:.7}
+input[type=text]:focus,input[type=number]:focus,textarea:focus{outline:none;border-color:var(--brand)}
+.hide{display:none!important}
+.pick{display:flex;flex-wrap:wrap;gap:8px}
+.pick button,.stepper button,.cta,.copy,.ghost{font:inherit;cursor:pointer;border:0;color:inherit}
+.pick button{padding:8px 14px;border-radius:999px;background:transparent;border:1.5px solid var(--line);font-size:14px;font-weight:500;transition:background .15s,border-color .15s,color .15s,transform .15s}
+.pick button:hover{border-color:var(--brand)}
+.pick button[aria-checked=true]{background:var(--brand);border-color:var(--brand);color:#fff;font-weight:600;transform:translateY(-2px);box-shadow:0 3px 0 var(--hi)}
+.pick.grades{display:grid;grid-template-columns:repeat(auto-fill,minmax(46px,1fr))}
+.pick.grades button{padding:10px 0;border-radius:14px;font-size:16px;font-weight:600}
+.pick.seg{display:grid;grid-template-columns:repeat(auto-fit,minmax(112px,1fr));gap:4px;border:1.5px solid var(--line);border-radius:16px;padding:4px}
+.pick.seg button{border:0;border-radius:12px;white-space:normal;text-align:center;line-height:1.25;min-height:44px}
+.pick.seg button[aria-checked=true]{transform:none;box-shadow:none}
+.pick.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.pick.cards button{display:flex;align-items:center;gap:10px;text-align:left;border-radius:16px;padding:12px 14px;line-height:1.2}
+.stepper{display:inline-flex;align-items:center;border:1.5px solid var(--line);border-radius:14px;width:max-content}
+.stepper button{width:44px;height:44px;font-size:22px;background:transparent;border-radius:12px}
+.stepper button:hover{background:var(--tint)}
+.stepper input{width:76px;text-align:center;border:0;font-weight:600;font-size:18px;padding:8px 0;-moz-appearance:textfield}
+.stepper input::-webkit-outer-spin-button,.stepper input::-webkit-inner-spin-button{-webkit-appearance:none}
+.toggles{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+.check-option{position:relative;display:flex;align-items:center;gap:10px;padding:12px 14px;border:1.5px solid var(--line);border-radius:16px;cursor:pointer;font-size:14px;font-weight:500;transition:border-color .15s,background .15s}
+.check-option input{position:absolute;opacity:0;inset:0;cursor:pointer}
+.check-option::after{content:"";margin-left:auto;flex:none;width:34px;height:20px;border-radius:99px;background:var(--line);background-image:radial-gradient(circle,#fff 7px,transparent 8px);background-size:20px 20px;background-repeat:no-repeat;background-position:2px 50%;transition:background-color .2s,background-position .2s}
+.check-option:has(input:checked){border-color:var(--brand);background:var(--tint)}
+.check-option:has(input:checked)::after{background-color:var(--brand);background-position:calc(100% - 2px) 50%}
+.check-option:has(input:focus-visible){outline:3px solid var(--brand);outline-offset:2px}
+.cta{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;margin:6px 0 26px;padding:18px;border-radius:18px;background:var(--brand);color:#fff;font-size:18px;font-weight:700;box-shadow:0 5px 0 var(--ink);transition:transform .12s,box-shadow .12s}
+.cta:hover{transform:translateY(-2px);box-shadow:0 7px 0 var(--ink)}
+.cta:active{transform:translateY(4px);box-shadow:0 1px 0 var(--ink)}
+aside{position:sticky;top:16px;display:flex;flex-direction:column;height:calc(100vh - 32px);max-height:860px;min-height:520px;background:var(--panel);color:var(--panel-ink);border-radius:28px;padding:22px;border:1px solid var(--line);transition:box-shadow .3s}
+aside.pop{animation:pop .7s}
+@keyframes pop{30%{box-shadow:0 0 0 6px var(--hi)}}
+.ph{display:flex;align-items:center;gap:14px;margin-bottom:16px}
+.ring{flex:none;width:52px;height:52px;transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:4;stroke-linecap:round}
+.ring .bg{stroke:#0f2a241f}
+.ring .fg{stroke:var(--hi);transition:stroke-dasharray .4s}
+.ph b{display:block;font-size:17px}
+.ph span{font-size:13px;opacity:.75}
+#promptOutput{flex:1;min-height:0;width:100%;resize:none;font:400 12.5px/1.6 var(--mono);color:var(--panel-ink);background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px;white-space:pre-wrap}
+#promptOutput:focus{outline:2px solid var(--brand)}
+.pa{display:flex;gap:10px;margin-top:14px}
+.copy{flex:1;padding:15px;border-radius:14px;background:var(--hi);color:#151a33;font-weight:700;font-size:16px;transition:transform .12s,background .2s}
+.copy:hover:not([aria-disabled=true]){transform:translateY(-2px)}
+.copy[aria-disabled=true]{opacity:.35;cursor:not-allowed}
+.copy.copied{background:#5ff0c0}
+.ghost{padding:15px 16px;border-radius:14px;background:#0f2a2412;color:var(--panel-ink);font-weight:600}
+.ghost:hover{background:#0f2a2422}
+.note{margin:12px 0 0;font-size:12.5px;opacity:.7}
+.i{display:inline-flex;width:1.2em;height:1.2em;flex:none}
+.i svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.mark .i{width:28px;height:28px}
+.ttl{display:flex!important;align-items:center;gap:8px}
+.cta,.copy,.ghost{display:inline-flex;align-items:center;justify-content:center;gap:9px}
+.cta{display:flex}
+.cta .i{width:22px;height:22px}
+.check-option .i{width:20px;height:20px;color:var(--brand)}
+.pick.cards .e{width:24px;height:24px;color:var(--brand);font-size:0}
+.pick.cards button[aria-checked=true] .e{color:#fff}
+.note{display:flex;gap:9px;align-items:flex-start}
+.note .i{width:16px;height:16px;margin-top:2px;color:var(--brand)}
+.chats{margin:22px 0 26px}
+.chats-t{margin:0 0 12px;font-weight:600;font-size:15px}
+.chat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
+.chat{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:16px;background:#fff;border:1.5px solid var(--line);font:inherit;font-weight:600;text-align:left;cursor:pointer;color:var(--ink);transition:transform .12s,border-color .15s,box-shadow .12s}
+.chat:hover{border-color:var(--brand);transform:translateY(-2px)}
+.chat:active{transform:translateY(1px)}
+.chat .logo{flex:none;display:grid;place-items:center;width:34px;height:34px;border-radius:10px;background:var(--tint);color:var(--brand);font-weight:800}
+.chat .nm{flex:1;min-width:0;line-height:1.2}
+.chat small{display:block;font-weight:400;font-size:12.5px;opacity:.85;margin-top:2px}
+.chat .go{width:16px;height:16px;opacity:.55}
+#toast{position:fixed;z-index:20;left:50%;bottom:24px;transform:translate(-50%,30px);max-width:min(92vw,460px);padding:13px 18px;border-radius:14px;background:var(--ink);color:#fff;font-size:14px;box-shadow:0 10px 30px #0f2a2440;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+@media (max-width:1000px){#toast{bottom:92px}}
+.credit{margin-top:36px;text-align:center;font-size:14px;color:var(--mute)}
+.credit a{color:var(--brand);font-weight:600;text-decoration:underline;text-underline-offset:3px}
+.credit a:hover{color:var(--ink)}
+.bar{display:none}
+:focus-visible{outline:3px solid var(--brand);outline-offset:2px}
+aside :focus-visible{outline-color:var(--brand)}
+@media (max-width:1000px){
+ .layout{grid-template-columns:1fr}
+ aside{position:static;height:auto;max-height:none}
+ #promptOutput{min-height:420px}
+ .bar{display:flex;position:fixed;z-index:9;left:10px;right:10px;bottom:10px;gap:12px;align-items:center;padding:10px 10px 10px 16px;border-radius:20px;background:var(--panel);color:var(--panel-ink);border:1px solid var(--line);box-shadow:0 10px 30px #0f2a2440}
+ .bar span{flex:1;font-size:13px;line-height:1.3}
+ .bar .copy{flex:none;padding:12px 18px}
+}
+@media (max-width:700px){
+ .sheet{padding:4px 18px;border-radius:22px}
+ .step{grid-template-columns:1fr;gap:16px;padding:24px 0}
+ .step h2{position:static;display:flex;align-items:center;gap:12px}
+ .step h2 b{margin:0}
+ .fields{grid-template-columns:1fr}
+ .field.full{grid-column:auto}
+ .mark{width:46px;height:46px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
-
 <body>
+<div class="wrap">
+<header>
+  <div class="mark" aria-hidden="true"><i class="i" data-i="gamepad"></i></div>
+  <div>
+    <h1>Генератор промту для HTML-інтерактиву</h1>
+    <p class="sub">Заповніть форму — промт збирається праворуч у реальному часі. Скопіюйте його в нейромережу й отримайте готовий навчальний інтерактив.</p>
+  </div>
+</header>
 
-<div class="container">
+<div class="layout">
+<form id="generatorForm" novalidate>
+<div class="sheet">
 
-    <header>
-        <div class="logo">🎮 HTML INTERACTIVE GENERATOR</div>
-        <h1>Генератор промту для HTML-інтерактиву</h1>
-        <p class="subtitle">
-            Заповніть форму — отримайте готовий промт для генерації навчального інтерактиву.
-        </p>
-    </header>
+  <section class="step">
+    <h2><b>1</b>Основна інформація<small>Обов’язкові поля</small></h2>
+    <div class="fields">
+      <div class="field full" data-key="subject">
+        <span class="lbl" id="l-subject">Предмет *</span>
+        <div class="pick" data-g="subject" aria-labelledby="l-subject"></div>
+        <input id="subjectCustom" class="hide" type="text" placeholder="Введіть свій предмет" aria-label="Свій предмет">
+      </div>
+      <div class="field full" data-key="grade">
+        <span class="lbl" id="l-grade">Клас *</span>
+        <div class="pick grades" data-g="grade" aria-labelledby="l-grade"></div>
+      </div>
+      <div class="field full" data-key="topic">
+        <label for="topic">Тема уроку *</label>
+        <input id="topic" type="text" placeholder="Наприклад: Present Simple" autocomplete="off">
+      </div>
+      <div class="field full">
+        <label for="subtopic">Підтема / конкретний навчальний матеріал</label>
+        <textarea id="subtopic" placeholder="Наприклад: стверджувальні, заперечні та питальні речення..."></textarea>
+      </div>
+    </div>
+  </section>
 
-    <form id="generatorForm">
-
-        <section class="card">
-            <h2 class="section-title">📚 Основна інформація</h2>
-
-            <div class="grid">
-
-                <div class="field">
-                    <label for="subject">Предмет *</label>
-                    <select id="subject" required>
-                        <option value="">Оберіть предмет</option>
-                        <option>Англійська мова</option>
-                        <option>Українська мова</option>
-                        <option>Українська література</option>
-                        <option>Математика</option>
-                        <option>Інформатика</option>
-                        <option>Історія України</option>
-                        <option>Всесвітня історія</option>
-                        <option>Географія</option>
-                        <option>Біологія</option>
-                        <option>Фізика</option>
-                        <option>Хімія</option>
-                        <option>Громадянська освіта</option>
-                        <option>Мистецтво</option>
-                        <option>Інше</option>
-                    </select>
-
-                    <input
-                        id="subjectCustom"
-                        class="custom-input"
-                        type="text"
-                        placeholder="Введіть свій предмет"
-                    >
-                </div>
-
-                <div class="field">
-                    <label for="grade">Клас *</label>
-                    <select id="grade" required>
-                        <option value="">Оберіть клас</option>
-                        <option>1 клас</option>
-                        <option>2 клас</option>
-                        <option>3 клас</option>
-                        <option>4 клас</option>
-                        <option>5 клас</option>
-                        <option>6 клас</option>
-                        <option>7 клас</option>
-                        <option>8 клас</option>
-                        <option>9 клас</option>
-                        <option>10 клас</option>
-                        <option>11 клас</option>
-                    </select>
-                </div>
-
-                <div class="field full">
-                    <label for="topic">Тема уроку *</label>
-                    <input
-                        id="topic"
-                        type="text"
-                        placeholder="Наприклад: Present Simple"
-                        required
-                    >
-                </div>
-
-                <div class="field full">
-                    <label for="subtopic">Підтема / конкретний навчальний матеріал</label>
-                    <textarea
-                        id="subtopic"
-                        placeholder="Наприклад: стверджувальні, заперечні та питальні речення..."
-                    ></textarea>
-                </div>
-
-            </div>
-        </section>
-
-        <section class="card">
-            <h2 class="section-title">🎯 Параметри навчання</h2>
-
-            <div class="grid">
-
-                <div class="field">
-                    <label for="goal">Мета інтерактиву</label>
-                    <select id="goal">
-                        <option value="закріплення нового матеріалу">Закріплення нового матеріалу</option>
-                        <option value="повторення вивченого">Повторення вивченого</option>
-                        <option value="перевірка знань">Перевірка знань</option>
-                        <option value="пояснення нового матеріалу">Пояснення нового матеріалу</option>
-                        <option value="тренування навички">Тренування навички</option>
-                        <option value="підготовка до контрольної роботи">Підготовка до контрольної роботи</option>
-                        <option value="мотивація учнів">Мотивація учнів</option>
-                    </select>
-                </div>
-
-                <div class="field">
-                    <label for="level">Рівень учнів</label>
-                    <select id="level">
-                        <option value="відповідно до віку та класу">Відповідно до віку та класу</option>
-                        <option value="початковий">Початковий</option>
-                        <option value="середній">Середній</option>
-                        <option value="достатній">Достатній</option>
-                        <option value="високий">Високий</option>
-                        <option value="A1">A1</option>
-                        <option value="A2">A2</option>
-                        <option value="B1">B1</option>
-                        <option value="B2">B2</option>
-                        <option value="C1">C1</option>
-                    </select>
-                </div>
-
-                <div class="field">
-                    <label for="time">Орієнтовний час</label>
-                    <select id="time">
-                        <option>5–10 хвилин</option>
-                        <option selected>10–15 хвилин</option>
-                        <option>15–20 хвилин</option>
-                        <option>20–30 хвилин</option>
-                        <option>30+ хвилин</option>
-                    </select>
-                </div>
-
-                <div class="field">
-                    <label for="format">Формат роботи</label>
-                    <select id="format">
-                        <option>індивідуально</option>
-                        <option>у парах</option>
-                        <option>у групах</option>
-                        <option>фронтально з усім класом</option>
-                        <option>індивідуально або фронтально</option>
-                    </select>
-                </div>
-
-                <div class="field">
-                    <label for="language">Мова інтерфейсу</label>
-                    <select id="language">
-                        <option>українська</option>
-                        <option>англійська</option>
-                        <option>українська та англійська</option>
-                    </select>
-                </div>
-
-                <div class="field">
-                    <label for="students">Кількість учнів</label>
-                    <input
-                        id="students"
-                        type="number"
-                        min="1"
-                        placeholder="Наприклад: 25"
-                    >
-                </div>
-
-            </div>
-        </section>
-
-        <section class="card">
-            <h2 class="section-title">🎮 Ігрова механіка</h2>
-
-            <div class="field">
-                <label for="mechanic">Тип інтерактиву</label>
-                <select id="mechanic">
-                    <option value="Самостійно обери найкращу механіку відповідно до теми">🤖 Нехай ШІ обере сам</option>
-                    <option value="квест">🗺️ Квест</option>
-                    <option value="детектив">🔎 Детектив</option>
-                    <option value="місія">🎯 Місія</option>
-                    <option value="подорож">🌍 Подорож</option>
-                    <option value="escape room">🔐 Escape room</option>
-                    <option value="змагання">🏆 Змагання</option>
-                    <option value="пошук помилок">🕵️ Пошук помилок</option>
-                    <option value="сортування">🗂️ Сортування</option>
-                    <option value="встановлення відповідностей">🔗 Встановлення відповідностей</option>
-                    <option value="пазл">🧩 Пазл</option>
-                    <option value="вікторина з ігровими елементами">❓ Вікторина</option>
-                    <option value="проходження рівнів">🎮 Проходження рівнів</option>
-                    <option value="симуляція">⚙️ Симуляція</option>
-                </select>
-            </div>
-
-            <br>
-
-            <label>🏆 Ігрові елементи</label>
-
-            <div class="checkbox-grid" style="margin-top:10px">
-
-                <label class="check-option">
-                    <input type="checkbox" value="бали" checked>
-                    <span>⭐ Бали</span>
-                </label>
-
-                <label class="check-option">
-                    <input type="checkbox" value="прогрес проходження" checked>
-                    <span>📊 Прогрес</span>
-                </label>
-
-                <label class="check-option">
-                    <input type="checkbox" value="рівні або етапи" checked>
-                    <span>🎯 Рівні</span>
-                </label>
-
-                <label class="check-option">
-                    <input type="checkbox" value="таймер">
-                    <span>⏱️ Таймер</span>
-                </label>
-
-                <label class="check-option">
-                    <input type="checkbox" value="життя або спроби">
-                    <span>❤️ Життя / спроби</span>
-                </label>
-
-                <label class="check-option">
-                    <input type="checkbox" value="фінальна нагорода" checked>
-                    <span>🏆 Фінальна нагорода</span>
-                </label>
-
-                <label class="check-option">
-                    <input type="checkbox" value="анімації">
-                    <span>✨ Анімації</span>
-                </label>
-
-                <label class="check-option">
-                    <input type="checkbox" value="звукові ефекти">
-                    <span>🔊 Звукові ефекти</span>
-                </label>
-
-            </div>
-        </section>
-
-        <section class="card">
-            <h2 class="section-title">🎨 Дизайн і додаткові умови</h2>
-
-            <div class="grid">
-
-                <div class="field">
-                    <label for="style">Стиль дизайну</label>
-                    <select id="style">
-                        <option>сучасний освітній</option>
-                        <option>мінімалістичний</option>
-                        <option>яскравий дитячий</option>
-                        <option>ігровий</option>
-                        <option>технологічний</option>
-                        <option>стриманий для старших учнів</option>
-                    </select>
-                </div>
-
-                <div class="field">
-                    <label for="difficulty">Складність</label>
-                    <select id="difficulty">
-                        <option>поступове ускладнення</option>
-                        <option>легка</option>
-                        <option>середня</option>
-                        <option>висока</option>
-                        <option>змішана</option>
-                    </select>
-                </div>
-
-                <div class="field full">
-                    <label for="material">Додатковий навчальний матеріал</label>
-                    <textarea
-                        id="material"
-                        placeholder="Вставте сюди слова, правила, формули, текст, визначення тощо. Якщо матеріалу немає — залиште поле порожнім."
-                    ></textarea>
-                </div>
-
-                <div class="field full">
-                    <label for="wishes">Особливі побажання</label>
-                    <textarea
-                        id="wishes"
-                        placeholder="Наприклад: без тестових запитань, більше практичних завдань, використовувати персонажа, додати гумор, завдання мають бути короткими..."
-                    ></textarea>
-                </div>
-
-            </div>
-        </section>
-
-        <div class="actions">
-            <button type="submit" class="generate-btn">
-                🚀 Згенерувати промт
-            </button>
+  <section class="step">
+    <h2><b>2</b>Параметри навчання<small>Для кого і навіщо</small></h2>
+    <div class="fields">
+      <div class="field full"><span class="lbl" id="l-goal">Мета інтерактиву</span><div class="pick" data-g="goal" aria-labelledby="l-goal"></div></div>
+      <div class="field full"><span class="lbl" id="l-level">Рівень учнів</span><div class="pick" data-g="level" aria-labelledby="l-level"></div></div>
+      <div class="field full"><span class="lbl" id="l-time">Орієнтовний час</span><div class="pick seg" data-g="time" aria-labelledby="l-time"></div></div>
+      <div class="field full"><span class="lbl" id="l-format">Формат роботи</span><div class="pick" data-g="format" aria-labelledby="l-format"></div></div>
+      <div class="field full"><span class="lbl" id="l-language">Мова інтерфейсу</span><div class="pick seg" data-g="language" aria-labelledby="l-language"></div></div>
+      <div class="field full">
+        <label for="students">Кількість учнів</label>
+        <div class="stepper">
+          <button type="button" data-step="-1" aria-label="Менше">−</button>
+          <input id="students" type="number" min="1" placeholder="25">
+          <button type="button" data-step="1" aria-label="Більше">+</button>
         </div>
+      </div>
+    </div>
+  </section>
 
-    </form>
-
-    <section class="card result" id="result">
-
-        <div class="result-header">
-            <h2>📋 Готовий промт</h2>
-            <button type="button" class="copy-btn" id="copyTop">
-                📋 Копіювати
-            </button>
+  <section class="step">
+    <h2><b>3</b>Ігрова механіка<small>Що саме робитимуть учні</small></h2>
+    <div class="fields">
+      <div class="field full"><span class="lbl" id="l-mechanic">Тип інтерактиву</span><div class="pick cards" data-g="mechanic" aria-labelledby="l-mechanic"></div></div>
+      <div class="field full">
+        <span class="lbl">Ігрові елементи</span>
+        <div class="toggles">
+          <label class="check-option"><input type="checkbox" value="бали" checked><i class="i" data-i="star"></i><span>Бали</span></label>
+          <label class="check-option"><input type="checkbox" value="прогрес проходження" checked><i class="i" data-i="chart"></i><span>Прогрес</span></label>
+          <label class="check-option"><input type="checkbox" value="рівні або етапи" checked><i class="i" data-i="flag"></i><span>Рівні</span></label>
+          <label class="check-option"><input type="checkbox" value="таймер"><i class="i" data-i="timer"></i><span>Таймер</span></label>
+          <label class="check-option"><input type="checkbox" value="життя або спроби"><i class="i" data-i="heart"></i><span>Життя / спроби</span></label>
+          <label class="check-option"><input type="checkbox" value="фінальна нагорода" checked><i class="i" data-i="award"></i><span>Фінальна нагорода</span></label>
+          <label class="check-option"><input type="checkbox" value="анімації"><i class="i" data-i="sparkles"></i><span>Анімації</span></label>
+          <label class="check-option"><input type="checkbox" value="звукові ефекти"><i class="i" data-i="volume"></i><span>Звукові ефекти</span></label>
         </div>
+      </div>
+    </div>
+  </section>
 
-        <textarea id="promptOutput" readonly></textarea>
+  <section class="step">
+    <h2><b>4</b>Дизайн і додаткові умови<small>Вигляд і складність</small></h2>
+    <div class="fields">
+      <div class="field full"><span class="lbl" id="l-style">Стиль дизайну</span><div class="pick" data-g="style" aria-labelledby="l-style"></div></div>
+      <div class="field full"><span class="lbl" id="l-difficulty">Складність</span><div class="pick seg" data-g="difficulty" aria-labelledby="l-difficulty"></div></div>
+      <div class="field full">
+        <label for="material">Додатковий навчальний матеріал</label>
+        <textarea id="material" placeholder="Вставте сюди слова, правила, формули, текст, визначення тощо. Якщо матеріалу немає — залиште поле порожнім."></textarea>
+      </div>
+      <div class="field full">
+        <label for="wishes">Особливі побажання</label>
+        <textarea id="wishes" placeholder="Наприклад: без тестових запитань, більше практичних завдань, використовувати персонажа, додати гумор, завдання мають бути короткими..."></textarea>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="chats" role="group" aria-labelledby="chatsT">
+<p class="chats-t" id="chatsT">Відкрити в чатботі — промт скопіюється автоматично</p>
+<div class="chat-grid">
+<button type="button" class="chat" data-url="https://chat.qwen.ai/" data-name="Qwen"><span class="logo" aria-hidden="true">Q</span><span class="nm"><b>Qwen</b></span><i class="i go" data-i="ext"></i></button>
+<button type="button" class="chat" data-url="https://chatgpt.com/" data-name="ChatGPT"><span class="logo" aria-hidden="true">C</span><span class="nm"><b>ChatGPT</b></span><i class="i go" data-i="ext"></i></button>
+<button type="button" class="chat" data-url="https://claude.ai/new" data-name="Claude"><span class="logo" aria-hidden="true">C</span><span class="nm"><b>Claude</b></span><i class="i go" data-i="ext"></i></button>
+<button type="button" class="chat" data-url="https://gemini.google.com/app" data-name="Gemini"><span class="logo" aria-hidden="true">G</span><span class="nm"><b>Gemini</b></span><i class="i go" data-i="ext"></i></button>
+<button type="button" class="chat" data-url="https://chat.deepseek.com/" data-name="DeepSeek"><span class="logo" aria-hidden="true">D</span><span class="nm"><b>DeepSeek</b></span><i class="i go" data-i="ext"></i></button>
+<button type="button" class="chat" data-url="https://grok.com/" data-name="Grok"><span class="logo" aria-hidden="true">G</span><span class="nm"><b>Grok</b></span><i class="i go" data-i="ext"></i></button>
+<button type="button" class="chat" data-url="https://copilot.microsoft.com/" data-name="Copilot"><span class="logo" aria-hidden="true">C</span><span class="nm"><b>Copilot</b></span><i class="i go" data-i="ext"></i></button>
+<button type="button" class="chat" data-url="https://chat.mistral.ai/" data-name="Mistral"><span class="logo" aria-hidden="true">M</span><span class="nm"><b>Mistral</b></span><i class="i go" data-i="ext"></i></button>
+</div>
+</div>
+</form>
 
-        <div class="bottom-copy">
-            <button type="button" id="copyBottom">
-                📋 Копіювати промт
-            </button>
-        </div>
-
-        <div class="note">
-            💡 Скопіюйте промт і вставте його в ChatGPT, Claude, Gemini або іншу нейромережу, яка вміє генерувати HTML.
-        </div>
-
-    </section>
-
+<aside id="result" aria-live="polite">
+  <div class="ph">
+    <svg class="ring" viewBox="0 0 36 36" aria-hidden="true"><circle class="bg" cx="18" cy="18" r="15" pathLength="3"/><circle class="fg" id="ringFg" cx="18" cy="18" r="15" pathLength="3" stroke-dasharray="0 3"/></svg>
+    <div><b class="ttl"><i class="i" data-i="clipboard"></i>Готовий промт</b><span id="status"></span></div>
+  </div>
+  <textarea id="promptOutput" readonly aria-label="Згенерований промт"></textarea>
+  <div class="pa">
+    <button type="button" class="copy" id="copyTop"><i class="i" data-i="clipboard"></i>Копіювати промт</button>
+    <button type="button" class="ghost" id="dl" title="Завантажити як .txt" aria-label="Завантажити як .txt"><i class="i" data-i="download"></i>.txt</button>
+  </div>
+  <p class="note"><i class="i" data-i="bulb"></i><span>Вставте промт у ChatGPT, Claude, Gemini або іншу нейромережу, яка вміє генерувати HTML.</span></p>
+</aside>
+</div>
+<footer class="credit">Автор: <a href="https://codenamexxv.github.io/teacher/" target="_blank" rel="noopener">Ігор Шуляк</a></footer>
 </div>
 
+<div id="toast" role="status" aria-live="polite"></div>
+<div class="bar"><span id="barStatus"></span><button type="button" class="copy" id="copyBottom"><i class="i" data-i="clipboard"></i>Копіювати</button></div>
+
 <script>
+const $ = id => document.getElementById(id);
+const getValue = id => $(id).value.trim();
+let ready = false;
+const ICONS = {
+gamepad:'<line x1="6" x2="10" y1="11" y2="11"/><line x1="8" x2="8" y1="9" y2="13"/><line x1="15" x2="15.01" y1="12" y2="12"/><line x1="18" x2="18.01" y1="10" y2="10"/><path d="M17.32 5H6.68a4 4 0 0 0-3.98 3.59C2.6 9.42 2 14.46 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.41-1.41A2 2 0 0 1 9.83 16h4.34a2 2 0 0 1 1.42.59L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.55-.6-6.58-.69-7.26A4 4 0 0 0 17.32 5z"/>',
+bot:'<path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2M20 14h2M15 13v2M9 13v2"/>',
+map:'<path d="M14.1 5.55a2 2 0 0 0 1.79 0l3.66-1.83A1 1 0 0 1 21 4.62v12.76a1 1 0 0 1-.55.9l-4.55 2.27a2 2 0 0 1-1.79 0l-4.21-2.1a2 2 0 0 0-1.79 0l-3.66 1.83A1 1 0 0 1 3 19.38V6.62a1 1 0 0 1 .55-.9l4.55-2.27a2 2 0 0 1 1.79 0z"/><path d="M15 5.76v15M9 3.24v15"/>',
+search:'<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+target:'<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
+globe:'<circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20M2 12h20"/>',
+lock:'<rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+trophy:'<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>',
+bug:'<path d="m8 2 1.88 1.88M14.12 3.88 16 2M9 7.13v-1a3 3 0 1 1 6 0v1"/><path d="M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v3c0 3.3-2.7 6-6 6zM12 20v-9M6.53 9C4.6 8.8 3 7.1 3 5M6 13H2M3 21c0-2.1 1.7-3.9 3.8-4M20.97 5c0 2.1-1.6 3.8-3.5 4M22 13h-4M17.2 17c2.1.1 3.8 1.9 3.8 4"/>',
+layers:'<path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65M22 12.65l-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/>',
+link:'<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
+puzzle:'<path d="M19.44 7.85c-.05.32.06.65.29.88l1.57 1.57c.47.47.7 1.09.7 1.7s-.23 1.23-.7 1.7l-1.61 1.61a.98.98 0 0 1-.84.28c-.47-.07-.8-.48-.97-.93a2.5 2.5 0 1 0-3.21 3.21c.45.17.86.5.93.97a.98.98 0 0 1-.28.84l-1.61 1.61a2.4 2.4 0 0 1-1.7.7 2.4 2.4 0 0 1-1.7-.7l-1.57-1.57a1.03 1.03 0 0 0-.88-.29c-.49.07-.84.5-1.02.97a2.5 2.5 0 1 1-3.24-3.24c.46-.18.89-.53.97-1.02a1.03 1.03 0 0 0-.29-.88L2.7 13.7A2.4 2.4 0 0 1 2 12c0-.62.24-1.23.7-1.7l1.53-1.53c.24-.24.58-.35.92-.3.52.08.88.53 1.07 1.01a2.5 2.5 0 1 0 3.26-3.26c-.48-.2-.93-.56-1.01-1.07-.05-.34.06-.68.3-.92l1.53-1.53A2.4 2.4 0 0 1 12 2c.62 0 1.23.24 1.7.7l1.57 1.57c.23.23.56.34.88.29.49-.07.84-.5 1.02-.97a2.5 2.5 0 1 1 3.24 3.24c-.46.18-.89.53-.97 1.02z"/>',
+help:'<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01"/>',
+stairs:'<path d="M3 21h5v-6h5V9h5V3h3"/>',
+sliders:'<path d="M21 4h-7M10 4H3M21 12h-9M8 12H3M21 20h-5M12 20H3M14 2v4M8 10v4M16 18v4"/>',
+star:'<path d="M11.53 2.3a.53.53 0 0 1 .95 0l2.31 4.68a2.12 2.12 0 0 0 1.6 1.16l5.16.76a.53.53 0 0 1 .3.9l-3.74 3.64a2.12 2.12 0 0 0-.61 1.88l.88 5.14a.53.53 0 0 1-.77.56l-4.62-2.43a2.12 2.12 0 0 0-1.97 0L6.4 21.01a.53.53 0 0 1-.77-.56l.88-5.14a2.12 2.12 0 0 0-.61-1.88L2.16 9.8a.53.53 0 0 1 .3-.91l5.16-.75a2.12 2.12 0 0 0 1.6-1.16z"/>',
+chart:'<path d="M3 3v16a2 2 0 0 0 2 2h16M18 17V9M13 17V5M8 17v-3"/>',
+flag:'<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1zM4 22v-7"/>',
+timer:'<path d="M10 2h4M12 14l3-3"/><circle cx="12" cy="14" r="8"/>',
+heart:'<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7z"/>',
+award:'<circle cx="12" cy="8" r="6"/><path d="M15.48 12.89 17 22l-5-3-5 3 1.52-9.11"/>',
+sparkles:'<path d="M9.94 15.5A2 2 0 0 0 8.5 14.06l-6.13-1.58a.5.5 0 0 1 0-.96L8.5 9.94A2 2 0 0 0 9.94 8.5l1.58-6.13a.5.5 0 0 1 .96 0l1.58 6.13a2 2 0 0 0 1.44 1.44l6.13 1.58a.5.5 0 0 1 0 .96l-6.13 1.58a2 2 0 0 0-1.44 1.44l-1.58 6.13a.5.5 0 0 1-.96 0z"/>',
+volume:'<path d="M11 4.7a.7.7 0 0 0-1.2-.5L6.41 7.59A1.4 1.4 0 0 1 5.42 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.42a1.4 1.4 0 0 1 1 .41l3.38 3.38a.7.7 0 0 0 1.2-.5z"/><path d="M16 9a5 5 0 0 1 0 6M19.36 18.36a9 9 0 0 0 0-12.73"/>',
+clipboard:'<rect width="8" height="4" x="8" y="2" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>',
+check:'<path d="M20 6 9 17l-5-5"/>',
+rocket:'<path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2zM9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/>',
+bulb:'<path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5M9 18h6M10 22h4"/>',
+ext:'<path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>',
+download:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>'
+};
+const svg = n => '<svg viewBox="0 0 24 24" aria-hidden="true">' + ICONS[n] + '</svg>';
+document.querySelectorAll("[data-i]").forEach(e => { e.innerHTML = svg(e.dataset.i); });
+const P = a => a.map(x => Array.isArray(x) ? x : [x, x]);
+const G = {
+  subject: P(["Англійська мова","Українська мова","Українська література","Математика","Інформатика","Історія України","Всесвітня історія","Географія","Біологія","Фізика","Хімія","Громадянська освіта","Мистецтво","Інше"]),
+  grade: P([1,2,3,4,5,6,7,8,9,10,11].map(n => [n + " клас", n])),
+  goal: P([["закріплення нового матеріалу","Закріплення нового матеріалу"],["повторення вивченого","Повторення вивченого"],["перевірка знань","Перевірка знань"],["пояснення нового матеріалу","Пояснення нового матеріалу"],["тренування навички","Тренування навички"],["підготовка до контрольної роботи","Підготовка до контрольної роботи"],["мотивація учнів","Мотивація учнів"]]),
+  level: P([["відповідно до віку та класу","Відповідно до віку та класу"],["початковий","Початковий"],["середній","Середній"],["достатній","Достатній"],["високий","Високий"],"A1","A2","B1","B2","C1"]),
+  time: P(["5–10 хвилин","10–15 хвилин","15–20 хвилин","20–30 хвилин","30+ хвилин"]),
+  format: P([["індивідуально","Індивідуально"],["у парах","У парах"],["у групах","У групах"],["фронтально з усім класом","Фронтально з усім класом"],["індивідуально або фронтально","Індивідуально або фронтально"]]),
+  language: P(["українська","англійська","українська та англійська"]),
+  mechanic: P([["Самостійно обери найкращу механіку відповідно до теми","bot","Нехай ШІ обере сам"],["квест","map","Квест"],["детектив","search","Детектив"],["місія","target","Місія"],["подорож","globe","Подорож"],["escape room","lock","Escape room"],["змагання","trophy","Змагання"],["пошук помилок","bug","Пошук помилок"],["сортування","layers","Сортування"],["встановлення відповідностей","link","Встановлення відповідностей"],["пазл","puzzle","Пазл"],["вікторина з ігровими елементами","help","Вікторина"],["проходження рівнів","stairs","Проходження рівнів"],["симуляція","sliders","Симуляція"]]),
+  style: P(["сучасний освітній","мінімалістичний","яскравий дитячий","ігровий","технологічний","стриманий для старших учнів"]),
+  difficulty: P(["поступове ускладнення","легка","середня","висока","змішана"])
+};
+const DEF = { goal: 0, level: 0, time: 1, format: 0, language: 0, mechanic: 0, style: 0, difficulty: 0 };
 
-const subject = document.getElementById("subject");
-const subjectCustom = document.getElementById("subjectCustom");
-
-subject.addEventListener("change", () => {
-    if (subject.value === "Інше") {
-        subjectCustom.classList.add("visible");
-        subjectCustom.required = true;
-        subjectCustom.focus();
-    } else {
-        subjectCustom.classList.remove("visible");
-        subjectCustom.required = false;
-        subjectCustom.value = "";
+document.querySelectorAll("[data-g]").forEach(box => {
+  const id = box.dataset.g;
+  const hidden = Object.assign(document.createElement("input"), { type: "hidden", id });
+  box.before(hidden);
+  G[id].forEach(o => {
+    const b = document.createElement("button");
+    b.type = "button"; b.setAttribute("role", "radio"); b.dataset.v = o[0];
+    if (id === "mechanic") b.innerHTML = '<span class="e i">' + svg(o[1]) + '</span><span>' + o[2] + '</span>';
+    else b.textContent = id === "grade" ? o[1] : o[0].charAt(0).toUpperCase() + o[0].slice(1);
+    box.append(b);
+  });
+  box.setAttribute("role", "radiogroup");
+  const set = v => {
+    hidden.value = v;
+    box.querySelectorAll("button").forEach(b => b.setAttribute("aria-checked", b.dataset.v === v));
+    if (id === "subject") {
+      const other = v === "Інше", c = document.getElementById("subjectCustom");
+      c.classList.toggle("hide", !other);
+      if (!other) c.value = "";
     }
+    if (ready) refresh();
+  };
+  box.addEventListener("click", e => {
+    const b = e.target.closest("button"); if (!b) return;
+    set(b.dataset.v);
+    if (id === "subject" && b.dataset.v === "Інше") document.getElementById("subjectCustom").focus();
+  });
+  box.querySelectorAll("button").forEach(b => b.setAttribute("aria-checked", "false"));
+  if (id in DEF) set(G[id][DEF[id]][0]);
 });
 
 
-function getValue(id) {
-    return document.getElementById(id).value.trim();
-}
-
-
 function getSelectedGameElements() {
-    const checked = document.querySelectorAll(
-        '.check-option input[type="checkbox"]:checked'
-    );
-
-    if (checked.length === 0) {
-        return "за можливості використай доречні ігрові елементи";
-    }
-
-    return Array.from(checked)
-        .map(item => item.value)
-        .join(", ");
+  const checked = document.querySelectorAll('.check-option input[type="checkbox"]:checked');
+  if (checked.length === 0) return "за можливості використай доречні ігрові елементи";
+  return Array.from(checked).map(i => i.value).join(", ");
 }
 
-
-function generatePrompt() {
-
-    let selectedSubject = getValue("subject");
-
-    if (selectedSubject === "Інше") {
-        selectedSubject = getValue("subjectCustom");
-    }
-
-    const grade = getValue("grade");
-    const topic = getValue("topic");
-    const subtopic = getValue("subtopic") || "не вказано";
-    const goal = getValue("goal");
-    const level = getValue("level");
-    const time = getValue("time");
-    const students = getValue("students") || "не вказано";
-    const format = getValue("format");
-    const language = getValue("language");
-    const mechanic = getValue("mechanic");
-    const style = getValue("style");
-    const difficulty = getValue("difficulty");
-    const material = getValue("material") || "не надано";
-    const wishes = getValue("wishes") || "немає";
-
-    const gameElements = getSelectedGameElements();
-
-    const prompt = `# 🎮 Створення HTML-інтерактиву для уроку
+function build() {
+  let selectedSubject = getValue("subject");
+  if (selectedSubject === "Інше") selectedSubject = getValue("subjectCustom");
+  selectedSubject = selectedSubject || "[не вказано]";
+  const grade = getValue("grade") || "[не вказано]";
+  const topic = getValue("topic") || "[не вказано]";
+  const subtopic = getValue("subtopic") || "не вказано";
+  const goal = getValue("goal"), level = getValue("level"), time = getValue("time");
+  const students = getValue("students") || "не вказано";
+  const format = getValue("format"), language = getValue("language"), mechanic = getValue("mechanic");
+  const style = getValue("style"), difficulty = getValue("difficulty");
+  const material = getValue("material") || "не надано";
+  const wishes = getValue("wishes") || "немає";
+  const gameElements = getSelectedGameElements();
+  return `# 🎮 Створення HTML-інтерактиву для уроку
 
 Ти — досвідчений учитель, методист і розробник навчальних вебінтерактивів.
 
@@ -920,64 +598,80 @@ interactive.html
 3. Використовувати на уроці.
 
 Якщо тема або надані дані не дозволяють створити якісний інтерактив, спочатку вкажи, якої інформації бракує, і не вигадуй її.`;
-
-    document.getElementById("promptOutput").value = prompt;
-
-    const result = document.getElementById("result");
-    result.classList.add("visible");
-
-    result.scrollIntoView({
-        behavior: "smooth",
-        block: "start"
-    });
 }
 
+function missing() {
+  const subj = getValue("subject") === "Інше" ? getValue("subjectCustom") : getValue("subject");
+  return [["subject", "предмет", subj], ["grade", "клас", getValue("grade")], ["topic", "тему уроку", getValue("topic")]].filter(m => !m[2]);
+}
 
-document
-    .getElementById("generatorForm")
-    .addEventListener("submit", function(event) {
-        event.preventDefault();
-        generatePrompt();
-    });
+function refresh() {
+  $("promptOutput").value = build();
+  const m = missing(), n = 3 - m.length, ready = n === 3;
+  $("ringFg").setAttribute("stroke-dasharray", n + " 3");
+  const msg = ready ? "Промт готовий — можна копіювати" : "Ще потрібно: " + m.map(x => x[1]).join(", ");
+  $("status").textContent = msg; $("barStatus").textContent = msg;
+  [$("copyTop"), $("copyBottom")].forEach(b => b.setAttribute("aria-disabled", !ready));
+  document.querySelectorAll(".field.err").forEach(f => { if (!m.some(x => x[0] === f.dataset.key)) f.classList.remove("err"); });
+}
 
+document.querySelectorAll("#generatorForm input, #generatorForm textarea").forEach(el => el.addEventListener("input", refresh));
+
+document.querySelectorAll(".stepper button").forEach(b => b.addEventListener("click", () => {
+  const i = $("students");
+  i.value = Math.max(1, (parseInt(i.value, 10) || 0) + Number(b.dataset.step));
+  refresh();
+}));
+
+function validate() {
+  const m = missing();
+  if (!m.length) return true;
+  m.forEach(x => document.querySelector('.field[data-key="' + x[0] + '"]').classList.add("err"));
+  document.querySelector('.field[data-key="' + m[0][0] + '"]').scrollIntoView({ behavior: "smooth", block: "center" });
+  return false;
+}
+
+let toastTimer;
+function toast(msg) {
+  const t = $("toast");
+  t.textContent = msg; t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("show"), 4500);
+}
+
+$("generatorForm").addEventListener("submit", e => { e.preventDefault(); validate(); });
+
+document.querySelectorAll(".chat").forEach(b => b.addEventListener("click", () => {
+  if (!validate()) return;
+  refresh();
+  const out = $("promptOutput"), name = b.dataset.name;
+  let p;
+  try { p = navigator.clipboard.writeText(out.value); }
+  catch (err) { out.select(); document.execCommand("copy"); p = Promise.resolve(); }
+  window.open(b.dataset.url, "_blank", "noopener");
+  p.then(() => toast("Промт скопійовано. Вставте його в " + name + " (Ctrl+V)"))
+   .catch(() => toast("Не вдалося скопіювати автоматично. Скопіюйте промт кнопкою на панелі"));
+}));
 
 async function copyPrompt(button) {
-
-    const output = document.getElementById("promptOutput");
-    const originalText = button.textContent;
-
-    try {
-        await navigator.clipboard.writeText(output.value);
-    } catch (error) {
-        output.select();
-        output.setSelectionRange(0, output.value.length);
-        document.execCommand("copy");
-    }
-
-    button.textContent = "✅ Скопійовано";
-    button.classList.add("copied");
-
-    setTimeout(() => {
-        button.textContent = originalText;
-        button.classList.remove("copied");
-    }, 1800);
+  if (button.getAttribute("aria-disabled") === "true") { $("generatorForm").requestSubmit(); return; }
+  const output = $("promptOutput"), original = button.innerHTML;
+  try { await navigator.clipboard.writeText(output.value); }
+  catch (err) { output.select(); output.setSelectionRange(0, output.value.length); document.execCommand("copy"); }
+  button.innerHTML = '<i class="i">' + svg("check") + "</i>Скопійовано"; button.classList.add("copied");
+  setTimeout(() => { button.innerHTML = original; button.classList.remove("copied"); }, 1800);
 }
+$("copyTop").addEventListener("click", function () { copyPrompt(this); });
+$("copyBottom").addEventListener("click", function () { copyPrompt(this); });
 
+$("dl").addEventListener("click", () => {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([$("promptOutput").value], { type: "text/plain;charset=utf-8" }));
+  a.download = "prompt.txt"; a.click(); URL.revokeObjectURL(a.href);
+});
 
-document
-    .getElementById("copyTop")
-    .addEventListener("click", function() {
-        copyPrompt(this);
-    });
-
-
-document
-    .getElementById("copyBottom")
-    .addEventListener("click", function() {
-        copyPrompt(this);
-    });
-
+ready = true;
+refresh();
 </script>
-
 </body>
 </html>
