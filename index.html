@@ -96,14 +96,15 @@ aside.pop{animation:pop .7s}
 .note .i{width:16px;height:16px;margin-top:2px;color:var(--brand)}
 .chats{margin:22px 0 26px}
 .chats-t{margin:0 0 12px;font-weight:600;font-size:15px}
+.chats-t.pub-t{margin-top:22px}
 .chat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
-.chat{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:16px;background:#fff;border:1.5px solid var(--line);font:inherit;font-weight:600;text-align:left;cursor:pointer;color:var(--ink);transition:transform .12s,border-color .15s,box-shadow .12s}
-.chat:hover{border-color:var(--brand);transform:translateY(-2px)}
-.chat:active{transform:translateY(1px)}
-.chat .logo{flex:none;display:grid;place-items:center;width:34px;height:34px;border-radius:10px;background:var(--tint);color:var(--brand);font-weight:800}
-.chat .nm{flex:1;min-width:0;line-height:1.2}
-.chat small{display:block;font-weight:400;font-size:12.5px;opacity:.85;margin-top:2px}
-.chat .go{width:16px;height:16px;opacity:.55}
+.chat,.pub{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:16px;background:#fff;border:1.5px solid var(--line);font:inherit;font-weight:600;text-align:left;cursor:pointer;color:var(--ink);text-decoration:none;transition:transform .12s,border-color .15s,box-shadow .12s}
+.chat:hover,.pub:hover{border-color:var(--brand);transform:translateY(-2px)}
+.chat:active,.pub:active{transform:translateY(1px)}
+.chat .logo,.pub .logo{flex:none;display:grid;place-items:center;width:34px;height:34px;border-radius:10px;background:var(--tint);color:var(--brand);font-weight:800}
+.chat .nm,.pub .nm{flex:1;min-width:0;line-height:1.2}
+.chat small,.pub small{display:block;font-weight:400;font-size:12.5px;opacity:.85;margin-top:2px}
+.chat .go,.pub .go{width:16px;height:16px;opacity:.55}
 #toast{position:fixed;z-index:20;left:50%;bottom:24px;transform:translate(-50%,30px);max-width:min(92vw,460px);padding:13px 18px;border-radius:14px;background:var(--ink);color:#fff;font-size:14px;box-shadow:0 10px 30px #0f2a2440;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s}
 #toast.show{opacity:1;transform:translate(-50%,0)}
 @media (max-width:1000px){#toast{bottom:92px}}
@@ -236,6 +237,11 @@ aside :focus-visible{outline-color:var(--brand)}
 <button type="button" class="chat" data-url="https://grok.com/" data-name="Grok"><span class="logo" aria-hidden="true">G</span><span class="nm"><b>Grok</b></span><i class="i go" data-i="ext"></i></button>
 <button type="button" class="chat" data-url="https://copilot.microsoft.com/" data-name="Copilot"><span class="logo" aria-hidden="true">C</span><span class="nm"><b>Copilot</b></span><i class="i go" data-i="ext"></i></button>
 <button type="button" class="chat" data-url="https://chat.mistral.ai/" data-name="Mistral"><span class="logo" aria-hidden="true">M</span><span class="nm"><b>Mistral</b></span><i class="i go" data-i="ext"></i></button>
+</div>
+<p class="chats-t pub-t" id="pubT">Публікація — вставте готовий код і опублікуйте</p>
+<div class="chat-grid" role="group" aria-labelledby="pubT">
+<a class="pub" href="https://app.netlify.com/drop" target="_blank" rel="noopener"><span class="logo" aria-hidden="true">N</span><span class="nm"><b>Netlify Drop</b></span><i class="i go" data-i="ext"></i></a>
+<a class="pub" href="https://codepen.io/pen" target="_blank" rel="noopener"><span class="logo" aria-hidden="true">C</span><span class="nm"><b>CodePen</b></span><i class="i go" data-i="ext"></i></a>
 </div>
 </div>
 </form>
