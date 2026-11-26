@@ -42,6 +42,7 @@ input[type=text]:focus,input[type=number]:focus,textarea:focus{outline:none;bord
 .pick button[aria-checked=true]{background:var(--brand);border-color:var(--brand);color:#fff;font-weight:600;transform:translateY(-2px);box-shadow:0 3px 0 var(--hi)}
 .pick.grades{display:grid;grid-template-columns:repeat(auto-fill,minmax(46px,1fr))}
 .pick.grades button{padding:10px 0;border-radius:14px;font-size:16px;font-weight:600}
+.pick.grades button.other-age{grid-column:span 4;padding:10px 12px;font-size:14px}
 .pick.seg{display:grid;grid-template-columns:repeat(auto-fit,minmax(112px,1fr));gap:4px;border:1.5px solid var(--line);border-radius:16px;padding:4px}
 .pick.seg button{border:0;border-radius:12px;white-space:normal;text-align:center;line-height:1.25;min-height:44px}
 .pick.seg button[aria-checked=true]{transform:none;box-shadow:none}
@@ -159,6 +160,7 @@ aside :focus-visible{outline-color:var(--brand)}
       <div class="field full" data-key="grade">
         <span class="lbl" id="l-grade">Клас *</span>
         <div class="pick grades" data-g="grade" aria-labelledby="l-grade"></div>
+        <input id="gradeCustom" class="hide" type="text" placeholder="Наприклад: 5 років або середня група" aria-label="Вік дитини" autocomplete="off">
       </div>
       <div class="field full" data-key="topic">
         <label for="topic">Тема уроку *</label>
@@ -305,7 +307,7 @@ document.querySelectorAll("[data-i]").forEach(e => { e.innerHTML = svg(e.dataset
 const P = a => a.map(x => Array.isArray(x) ? x : [x, x]);
 const G = {
   subject: P(["Англійська мова","Українська мова","Українська література","Математика","Інформатика","Історія України","Всесвітня історія","Географія","Біологія","Фізика","Хімія","Громадянська освіта","Мистецтво","Інше"]),
-  grade: P([1,2,3,4,5,6,7,8,9,10,11].map(n => [n + " клас", n])),
+  grade: P([1,2,3,4,5,6,7,8,9,10,11].map(n => [n + " клас", n]).concat([["Інший вік дитини", "Інший вік дитини"]])),
   goal: P([["закріплення нового матеріалу","Закріплення нового матеріалу"],["повторення вивченого","Повторення вивченого"],["перевірка знань","Перевірка знань"],["пояснення нового матеріалу","Пояснення нового матеріалу"],["тренування навички","Тренування навички"],["підготовка до контрольної роботи","Підготовка до контрольної роботи"],["мотивація учнів","Мотивація учнів"]]),
   level: P([["відповідно до віку та класу","Відповідно до віку та класу"],["початковий","Початковий"],["середній","Середній"],["достатній","Достатній"],["високий","Високий"],"A1","A2","B1","B2","C1"]),
   time: P(["5–10 хвилин","10–15 хвилин","15–20 хвилин","20–30 хвилин","30+ хвилин"]),
@@ -326,6 +328,7 @@ document.querySelectorAll("[data-g]").forEach(box => {
     b.type = "button"; b.setAttribute("role", "radio"); b.dataset.v = o[0];
     if (id === "mechanic") b.innerHTML = '<span class="e i">' + svg(o[1]) + '</span><span>' + o[2] + '</span>';
     else b.textContent = id === "grade" ? o[1] : o[0].charAt(0).toUpperCase() + o[0].slice(1);
+    if (id === "grade" && o[0] === "Інший вік дитини") b.classList.add("other-age");
     box.append(b);
   });
   box.setAttribute("role", "radiogroup");
@@ -337,12 +340,18 @@ document.querySelectorAll("[data-g]").forEach(box => {
       c.classList.toggle("hide", !other);
       if (!other) c.value = "";
     }
+    if (id === "grade") {
+      const otherAge = v === "Інший вік дитини", g = document.getElementById("gradeCustom");
+      g.classList.toggle("hide", !otherAge);
+      if (!otherAge) g.value = "";
+    }
     if (ready) refresh();
   };
   box.addEventListener("click", e => {
     const b = e.target.closest("button"); if (!b) return;
     set(b.dataset.v);
     if (id === "subject" && b.dataset.v === "Інше") document.getElementById("subjectCustom").focus();
+    if (id === "grade" && b.dataset.v === "Інший вік дитини") document.getElementById("gradeCustom").focus();
   });
   box.querySelectorAll("button").forEach(b => b.setAttribute("aria-checked", "false"));
   if (id in DEF) set(G[id][DEF[id]][0]);
@@ -359,7 +368,9 @@ function build() {
   let selectedSubject = getValue("subject");
   if (selectedSubject === "Інше") selectedSubject = getValue("subjectCustom");
   selectedSubject = selectedSubject || "[не вказано]";
-  const grade = getValue("grade") || "[не вказано]";
+  const isOtherAge = getValue("grade") === "Інший вік дитини";
+  const gradeLabel = isOtherAge ? "Вік дітей" : "Клас";
+  const grade = (isOtherAge ? getValue("gradeCustom") : getValue("grade")) || "[не вказано]";
   const topic = getValue("topic") || "[не вказано]";
   const subtopic = getValue("subtopic") || "не вказано";
   const goal = getValue("goal"), level = getValue("level"), time = getValue("time");
@@ -381,7 +392,7 @@ function build() {
 
 **Предмет:** ${selectedSubject}
 
-**Клас:** ${grade}
+**${gradeLabel}:** ${grade}
 
 **Тема:** ${topic}
 
@@ -608,7 +619,9 @@ interactive.html
 
 function missing() {
   const subj = getValue("subject") === "Інше" ? getValue("subjectCustom") : getValue("subject");
-  return [["subject", "предмет", subj], ["grade", "клас", getValue("grade")], ["topic", "тему уроку", getValue("topic")]].filter(m => !m[2]);
+  const otherAge = getValue("grade") === "Інший вік дитини";
+  const gr = otherAge ? getValue("gradeCustom") : getValue("grade");
+  return [["subject", "предмет", subj], ["grade", otherAge ? "вік дитини" : "клас", gr], ["topic", "тему уроку", getValue("topic")]].filter(m => !m[2]);
 }
 
 function refresh() {
